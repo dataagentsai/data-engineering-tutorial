@@ -148,12 +148,17 @@ def slice1():
         ["Databricks binding", "DBS", "Which product sits behind each plug, and what no product does."],
         ["capabilities", "DPC", f"The {len(CAPS)} parts slice 1 needs."],
     ])
-    gaps = BIND["not_covered"]
-    out += f"<h2>What no product does for us</h2><p>The binding's most useful output is the short list of rules no " \
-           f"product meets on its own. On Databricks, for slice 1, there are {len(gaps)}. This list is the reason the " \
-           f"platform framework exists:</p>"
-    out += table(["Rule", "Why no product covers it"], [[g["obligation"] + ": " + OBL[g["obligation"]]["title"], g["why"]]
-                                                       for g in gaps])
+    binds = BIND["bindings"]
+    word = {"full": "Databricks covers it", "partial": "Databricks covers part", "none": "Databricks has nothing"}
+    full = sum(b["coverage"] == "full" for b in binds.values())
+    out += f"<h2>What Databricks does, and what we add</h2><p>The rule for every binding: use what the platform " \
+           f"offers as much as possible, fill only the gap, drive it all from the metadata, and connect the dots. " \
+           f"For slice 1, Databricks covers {full} of the {len(binds)} plugs completely. For the rest, the binding " \
+           f"says what is missing and who fills it:</p>"
+    out += table(["Plug", "Coverage", "What is missing", "Filled by"],
+                 [[f"<code>{p}</code>", word[b["coverage"]], b.get("gap", ""),
+                   (b.get("gap_filled_by") or {}).get("approach", "")]
+                  for p, b in binds.items() if b["coverage"] != "full"])
     out += note("Next", "<p>Build slice 1 on Databricks Free Edition, run the seven days, and change the specs " \
                 "wherever the build shows a rule is wrong or missing.</p>")
     out += f"<p class='deeper'>All five files: {src('slices/01-orders/', 'slices/01-orders/')}.</p>"
